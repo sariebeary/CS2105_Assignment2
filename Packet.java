@@ -1,13 +1,8 @@
 /*
-Name: YOUR_NAME_HERE
-Student number: YOUR_STUDENT_NO_HERE
-Is this a group submission (yes/no)?
-
-If it is a group submission:
-Name of 2nd group member: THE_OTHER_NAME_HERE_PLEASE
-Student number of 2nd group member: THE_OTHER_NO
-
-*/
+ Name: Sarah Helen Bednar
+ Student number: A0179788X
+ Is this a group submission (yes/no)? no
+ */
 
 
 
@@ -23,4 +18,33 @@ import java.util.zip.CRC32;
 
 class Packet {
     // Implement me
+    private int dataSize;
+    private byte[] data;
+    
+    //Data constructor
+    public Packet(int type, byte[] buffer, int numBytes, int port, int seqNum, String fileName){
+        dataSize = numBytes;
+        data = buffer;
+    }
+    // ACK/NAK constructor 
+    public Packet(int type, int seqNum) {
+        
+    }
+    
+    public DatagramPacket getDataPacket() throws UnknownHostException{
+        InetAddress address = InetAddress.getByName("localhost");
+        //DatagramPacket p = new DatagramPacket(packetData, packetSize, address, port); 
+        return null; 
+    }
+    
+    public byte[] getData() {
+        //type and seqNum concat
+        return null;
+    }
+   
+    public void checkSum() {
+        CRC32 crc = new CRC32();
+        crc.update(data);
+    }
+    
 }

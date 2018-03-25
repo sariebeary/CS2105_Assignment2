@@ -1,13 +1,8 @@
 /*
-Name: YOUR_NAME_HERE
-Student number: YOUR_STUDENT_NO_HERE
-Is this a group submission (yes/no)?
-
-If it is a group submission:
-Name of 2nd group member: THE_OTHER_NAME_HERE_PLEASE
-Student number of 2nd group member: THE_OTHER_NO
-
-*/
+ Name: Sarah Helen Bednar
+ Student number: A0179788X
+ Is this a group submission (yes/no)? no
+ */
 
 
 import java.net.*;
@@ -18,6 +13,9 @@ import java.io.*;
 class Bob {
     private int seqNum = 0;
     private DatagramSocket socket;
+    private static final int DATA = -1;
+    private static final int ACK = 0;
+    private static final int NAK = 1;
 
     public static void main(String[] args) throws Exception {
         // Do not modify this method

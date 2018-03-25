@@ -1,57 +1,28 @@
 /*
-Name: YOUR_NAME_HERE
-Student number: YOUR_STUDENT_NO_HERE
-Is this a group submission (yes/no)?
-
-If it is a group submission:
-Name of 2nd group member: THE_OTHER_NAME_HERE_PLEASE
-Student number of 2nd group member: THE_OTHER_NO
-
-*/
-
-
-// Please DO NOT copy from the Internet (or anywhere else)
-// Instead, if you see nice code somewhere try to understand it.
-//
-// After understanding the code, put it away, do not look at it,
-// and write your own code.
-// Subsequent exercises will build on the knowledge that
-// you gain during this exercise. Possibly also the exam.
-//
-// We will check for plagiarism. Please be extra careful and
-// do not share solutions with your friends.
-//
-// Good practices include
-// (1) Discussion of general approaches to solve the problem
-//     excluding detailed design discussions and code reviews.
-// (2) Hints about which classes to use
-// (3) High level UML diagrams
-//
-// Bad practices include (but are not limited to)
-// (1) Passing your solution to your friends
-// (2) Uploading your solution to the Internet including
-//     public repositories
-// (3) Passing almost complete skeleton codes to your friends
-// (4) Coding the solution for your friend
-// (5) Sharing the screen with a friend during coding
-// (6) Sharing notes
-//
-// If you want to solve this assignment in a group,
-// you are free to do so, but declare it as group work above.
-
-
-
+ Name: Sarah Helen Bednar
+ Student number: A0179788X
+ Is this a group submission (yes/no)? no
+ */
 
 import java.net.*;
 import java.nio.*;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.io.*;
-
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 class Alice {
+
     private int seqNum = 0;
     private DatagramSocket socket;
+    private static final int MAX_SIZE = 1024; // max num bytes per packet
+    private static final int DATA = -1;
+    private static final int ACK = 0;
+    private static final int NAK = 1;
 
     public static void main(String[] args) throws Exception {
         // Do not modify this method
@@ -63,6 +34,65 @@ class Alice {
     }
 
     public Alice(String fileToSend, int port, String filenameAtBob) throws Exception {
-        // Implement me
+        // create client socket
+        socket = new DatagramSocket();
+
+        Path p = Paths.get(fileToSend);
+        File f = p.getFileName().toFile();
+        if (!f.canRead() || !f.isFile()) {
+            System.out.println("Error: File " + f + " does not exist.");
+            System.exit(1);
+        }
+        sendFile(f, port, filenameAtBob);
+
     }
+
+    public void sendFile(File fileToSend, int port, String filenameAtBob) throws FileNotFoundException, IOException {
+        FileInputStream input = new FileInputStream(fileToSend);
+        long bytesToRead = fileToSend.length();
+        byte[] packetData = new byte[MAX_SIZE];
+        while (bytesToRead > 0) {
+            if(bytesToRead > MAX_SIZE){
+                packetData = new byte[MAX_SIZE];
+            }
+            else{
+                packetData = new byte[(int)bytesToRead];
+            }
+            int numDataBytes = input.read(packetData);
+            bytesToRead -= numDataBytes;
+            Packet pkt = new Packet(DATA, packetData, numDataBytes, port, seqNum, filenameAtBob);
+            DatagramPacket dp = pkt.getDataPacket();
+            sendPacket(dp);
+        }
+
+    }
+
+    public void sendPacket(DatagramPacket packet) {
+        try {
+            socket.send(packet);
+            socket.setSoTimeout(100);
+            // Wait for ACK or NAK to ensure packet received or needs retransmission 
+            byte[] buffer = new byte[MAX_SIZE];
+            DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
+                socket.receive(reply);
+                byte[] replyData = reply.getData();
+                Packet ackPkt = new Packet(ACK, seqNum);
+                if (Arrays.equals(ackPkt.getData(), replyData)) {
+                    seqNum++; 
+                }
+                else {
+                    sendPacket(packet);
+                }  
+                reply.getData();
+         
+        } catch (SocketTimeoutException e) {
+            System.out.printf("Timer expired. Resend packet");
+            sendPacket(packet);
+        } catch (IOException ex) {
+            System.out.println("Unable to send packet.");
+            System.out.println(ex.getMessage());
+            sendPacket(packet);
+        }
+    }
+
 }
