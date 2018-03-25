@@ -19,8 +19,7 @@ class Alice {
 
     private int seqNum = 0;
     private DatagramSocket socket;
-    private static final int MAX_SIZE = 1024; // max num bytes per packet
-    private static final int DATA = -1;
+    private static final int MAX_SIZE = 972; // max num bytes per packet 1024 - header (40,4,8)
     private static final int ACK = 0;
     private static final int NAK = 1;
 
@@ -52,15 +51,14 @@ class Alice {
         long bytesToRead = fileToSend.length();
         byte[] packetData = new byte[MAX_SIZE];
         while (bytesToRead > 0) {
-            if(bytesToRead > MAX_SIZE){
+            if (bytesToRead > MAX_SIZE) {
                 packetData = new byte[MAX_SIZE];
-            }
-            else{
-                packetData = new byte[(int)bytesToRead];
+            } else {
+                packetData = new byte[(int) bytesToRead];
             }
             int numDataBytes = input.read(packetData);
             bytesToRead -= numDataBytes;
-            Packet pkt = new Packet(DATA, packetData, numDataBytes, port, seqNum, filenameAtBob);
+            Packet pkt = new Packet(packetData, numDataBytes, port, seqNum, filenameAtBob);
             DatagramPacket dp = pkt.getDataPacket();
             sendPacket(dp);
         }
@@ -74,17 +72,16 @@ class Alice {
             // Wait for ACK or NAK to ensure packet received or needs retransmission 
             byte[] buffer = new byte[MAX_SIZE];
             DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
-                socket.receive(reply);
-                byte[] replyData = reply.getData();
-                Packet ackPkt = new Packet(ACK, seqNum);
-                if (Arrays.equals(ackPkt.getData(), replyData)) {
-                    seqNum++; 
-                }
-                else {
-                    sendPacket(packet);
-                }  
-                reply.getData();
-         
+            socket.receive(reply);
+            byte[] replyData = reply.getData();
+            Packet ackPkt = new Packet(ACK, seqNum);
+            if (Arrays.equals(ackPkt.getData(), replyData)) {
+                seqNum++;
+            } else {
+                sendPacket(packet);
+            }
+            reply.getData();
+
         } catch (SocketTimeoutException e) {
             System.out.printf("Timer expired. Resend packet");
             sendPacket(packet);
