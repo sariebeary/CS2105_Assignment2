@@ -48,7 +48,7 @@ class Packet {
         //Add seqNum
         b.putInt(seqNum);
         //Add data size
-        b.putInt(type);
+        b.putInt(data.length);
         //Add data
         b.put(data);
         return b.array();

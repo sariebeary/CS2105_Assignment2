@@ -52,9 +52,17 @@ class Alice {
         Packet pkt = new Packet(filename, port, seqNum);
         DatagramPacket dp = pkt.getDataPacket();
         sendPacket(dp);
+        // send filesize packet 
+        long bytesToRead = fileToSend.length();
+        ByteBuffer b = ByteBuffer.allocate(Long.BYTES);
+        b.putLong(bytesToRead);
+        byte[] fileSize = b.array();
+        pkt = new Packet(fileSize, port, seqNum);
+        dp = pkt.getDataPacket();
+        sendPacket(dp);
+        // send data packets 
         FileInputStream fis = new FileInputStream(fileToSend);
         BufferedInputStream bis = new BufferedInputStream(fis);
-        long bytesToRead = fileToSend.length();
         byte[] packetData = new byte[MAX_SIZE];
         while (bytesToRead > 0) {
             if (bytesToRead > MAX_SIZE) {
@@ -69,7 +77,7 @@ class Alice {
             sendPacket(dp);
         }
         bis.close();
-        fis.close(); 
+        fis.close();
         socket.close();
     }
 
@@ -81,17 +89,22 @@ class Alice {
             byte[] buffer = new byte[MAX_SIZE];
             DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
             socket.receive(reply);
+
             byte[] replyData = reply.getData();
+            replyData = Arrays.copyOfRange(replyData, 0, Integer.BYTES * 2);
             Packet ackPkt = new Packet(ACK, seqNum);
+            Packet nakPkt = new Packet(NAK, seqNum);
             if (Arrays.equals(ackPkt.getData(), replyData)) {
+                System.out.println("ACK received for seqnum: " + seqNum);
                 seqNum++;
             } else {
+                System.out.println("Corrupted data received for seqnum: " + seqNum);
                 sendPacket(packet);
             }
             reply.getData();
 
         } catch (SocketTimeoutException e) {
-            System.out.printf("Timer expired. Resend packet");
+            System.out.println("Timer expired. Resend packet");
             sendPacket(packet);
         } catch (IOException ex) {
             System.out.println("Unable to send packet.");
