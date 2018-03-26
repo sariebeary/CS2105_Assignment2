@@ -8,13 +8,14 @@
 import java.net.*;
 import java.nio.*;
 import java.io.*;
+import java.util.Arrays;
 
 
 class Bob {
     private int seqNum = 0;
     private DatagramSocket socket;
-    private static final int DATA = -1;
-    private static final int ACK = 0;
+    private static final int MAX_SIZE = 1024;
+        private static final int ACK = 0;
     private static final int NAK = 1;
 
     public static void main(String[] args) throws Exception {
@@ -27,6 +28,19 @@ class Bob {
     }
 
     public Bob(int port) throws Exception {
-        // Implement me
+        socket = new DatagramSocket(port); 
+        byte[] buffer = new byte[MAX_SIZE];
+
+    	    DatagramPacket recievedPkt = new DatagramPacket(buffer, buffer.length);
+    	    socket.receive(recievedPkt);
+    	    byte[] recievedData = recievedPkt.getData();
+            byte[] checkSum = Arrays.copyOfRange(recievedData, 0, 8);
+    	    if(isChecksumValid(recievedPkt)) {
+                
+            }
+    	    
+    }
+    public boolean isChecksumValid(int checksum) {
+        return false; 
     }
 }

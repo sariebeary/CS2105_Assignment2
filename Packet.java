@@ -16,17 +16,14 @@ import java.util.zip.CRC32;
 class Packet {
 
     // Implement me
-    private int dataSize, type, port, seqNum;
-    private String rcvFileName;
+    private int type, port, seqNum;
     private byte[] packetData, fileData;
 
     //Data constructor
-    public Packet(byte[] data, int numBytes, int port, int seqNum, String fileName) {
+    public Packet(byte[] data, int port, int seqNum) {
         fileData = data;
-        dataSize = numBytes;
         this.port = port;
         this.seqNum = seqNum;
-        rcvFileName = fileName;
 
     }
 
@@ -38,21 +35,21 @@ class Packet {
 
     public DatagramPacket getDataPacket() throws UnknownHostException {
         InetAddress address = InetAddress.getByName("localhost");
-        packetData = addHeaderData();
+        packetData = addHeaderData(fileData);
         DatagramPacket p = new DatagramPacket(packetData, packetData.length, address, port);
         return p;
     }
 
-    public byte[] addHeaderData() {
-        ByteBuffer b = ByteBuffer.allocate(1024);
+    public byte[] addHeaderData(byte[] data) {
+        ByteBuffer b = ByteBuffer.allocate(Long.BYTES + Integer.BYTES * 2 + data.length);
         //Add checksum
         b.putLong(checkSum());
         //Add seqNum
         b.putInt(seqNum);
-        //Add rcvFileName
-        b.put(rcvFileName.getBytes());
+        //Add data size
+        b.putInt(type);
         //Add data
-        b.put(fileData);
+        b.put(data);
         return b.array();
     }
 

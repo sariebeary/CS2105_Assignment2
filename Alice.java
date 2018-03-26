@@ -19,7 +19,7 @@ class Alice {
 
     private int seqNum = 0;
     private DatagramSocket socket;
-    private static final int MAX_SIZE = 972; // max num bytes per packet 1024 - header (40,4,8)
+    private static final int MAX_SIZE = (1024 - (Long.BYTES + Integer.BYTES * 2)); // max num bytes per packet 1024 - header size
     private static final int ACK = 0;
     private static final int NAK = 1;
 
@@ -47,6 +47,11 @@ class Alice {
     }
 
     public void sendFile(File fileToSend, int port, String filenameAtBob) throws FileNotFoundException, IOException {
+        // send filename packet
+        byte[] filename = filenameAtBob.getBytes();
+        Packet pkt = new Packet(filename, port, seqNum);
+        DatagramPacket dp = pkt.getDataPacket();
+        sendPacket(dp);
         FileInputStream input = new FileInputStream(fileToSend);
         long bytesToRead = fileToSend.length();
         byte[] packetData = new byte[MAX_SIZE];
@@ -58,11 +63,12 @@ class Alice {
             }
             int numDataBytes = input.read(packetData);
             bytesToRead -= numDataBytes;
-            Packet pkt = new Packet(packetData, numDataBytes, port, seqNum, filenameAtBob);
-            DatagramPacket dp = pkt.getDataPacket();
+            pkt = new Packet(packetData, port, seqNum);
+            dp = pkt.getDataPacket();
             sendPacket(dp);
         }
-
+        input.close();
+        socket.close();
     }
 
     public void sendPacket(DatagramPacket packet) {
