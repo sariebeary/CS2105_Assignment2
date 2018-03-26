@@ -52,7 +52,8 @@ class Alice {
         Packet pkt = new Packet(filename, port, seqNum);
         DatagramPacket dp = pkt.getDataPacket();
         sendPacket(dp);
-        FileInputStream input = new FileInputStream(fileToSend);
+        FileInputStream fis = new FileInputStream(fileToSend);
+        BufferedInputStream bis = new BufferedInputStream(fis);
         long bytesToRead = fileToSend.length();
         byte[] packetData = new byte[MAX_SIZE];
         while (bytesToRead > 0) {
@@ -61,13 +62,14 @@ class Alice {
             } else {
                 packetData = new byte[(int) bytesToRead];
             }
-            int numDataBytes = input.read(packetData);
+            int numDataBytes = bis.read(packetData);
             bytesToRead -= numDataBytes;
             pkt = new Packet(packetData, port, seqNum);
             dp = pkt.getDataPacket();
             sendPacket(dp);
         }
-        input.close();
+        bis.close();
+        fis.close(); 
         socket.close();
     }
 

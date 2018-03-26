@@ -30,6 +30,7 @@ class Packet {
     // ACK/NAK constructor 
     public Packet(int type, int seqNum) {
         this.type = type;
+        this.seqNum = seqNum;
 
     }
 
@@ -41,7 +42,7 @@ class Packet {
     }
 
     public byte[] addHeaderData(byte[] data) {
-        ByteBuffer b = ByteBuffer.allocate(Long.BYTES + Integer.BYTES * 2 + data.length);
+        ByteBuffer b = ByteBuffer.allocate(Long.BYTES + (Integer.BYTES * 2) + data.length);
         //Add checksum
         b.putLong(checkSum());
         //Add seqNum
@@ -55,15 +56,16 @@ class Packet {
 
     public byte[] getData() {
         //type and seqNum concat
-        ByteBuffer b = ByteBuffer.allocate(16);
+        ByteBuffer b = ByteBuffer.allocate(Integer.BYTES * 2);
         b.putInt(type);
         b.putInt(seqNum);
+        fileData = b.array();
         return b.array();
     }
 
     public long checkSum() {
         CRC32 crc = new CRC32();
-        crc.update(packetData);
+        crc.update(fileData);
         return crc.getValue();
     }
 
